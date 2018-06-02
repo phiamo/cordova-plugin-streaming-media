@@ -31,7 +31,6 @@ public class SimpleVideoStream extends Activity implements
 	private ProgressBar mProgressBar = null;
 	private String mVideoUrl;
 	private Boolean mShouldAutoClose = true;
-	private boolean mControls;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +42,6 @@ public class SimpleVideoStream extends Activity implements
 		mVideoUrl = b.getString("mediaUrl");
 		mShouldAutoClose = b.getBoolean("shouldAutoClose");
 		mShouldAutoClose = mShouldAutoClose == null ? true : mShouldAutoClose;
-		mControls = b.getBoolean("controls", true);
 
 		RelativeLayout relLayout = new RelativeLayout(this);
 		relLayout.setBackgroundColor(Color.BLACK);
@@ -51,6 +49,10 @@ public class SimpleVideoStream extends Activity implements
 		relLayoutParam.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
 		mVideoView = new VideoView(this);
 		mVideoView.setLayoutParams(relLayoutParam);
+
+        Log.d(TAG, "Bundle: " + b.toString());
+        int position = Integer.parseInt(b.getString("position"));
+
 		relLayout.addView(mVideoView);
 
 		// Create progress throbber
@@ -68,10 +70,10 @@ public class SimpleVideoStream extends Activity implements
 
 		setContentView(relLayout, relLayoutParam);
 
-		play();
+		play(position);
 	}
 
-	private void play() {
+	private void play(int position) {
 		mProgressBar.setVisibility(View.VISIBLE);
 		Uri videoUri = Uri.parse(mVideoUrl);
 		try {
@@ -82,10 +84,22 @@ public class SimpleVideoStream extends Activity implements
 			mMediaController = new MediaController(this);
 			mMediaController.setAnchorView(mVideoView);
 			mMediaController.setMediaPlayer(mVideoView);
-			if (!mControls) {
-				mMediaController.setVisibility(View.GONE);
-			}
 			mVideoView.setMediaController(mMediaController);
+            Log.d(TAG, "Seeking to " + position);
+            mVideoView.seekTo(position);
+            final int pos = position;
+            if(pos > 0) {
+                mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                    @Override
+                    public void onPrepared(MediaPlayer mp) {
+                        mp.seekTo(pos);
+                        mVideoView.seekTo(pos);
+                        mVideoView.requestFocus();
+                        mVideoView.start();
+                        mVideoView.postDelayed(checkIfPlaying, 0);
+                    }
+                });
+            }
 		} catch (Throwable t) {
 			Log.d(TAG, t.toString());
 		}
@@ -143,6 +157,8 @@ public class SimpleVideoStream extends Activity implements
 	private void wrapItUp(int resultCode, String message) {
 		Intent intent = new Intent();
 		intent.putExtra("message", message);
+		int position = mVideoView.getCurrentPosition();
+		intent.putExtra("position", Integer.toString(position));
 		setResult(resultCode, intent);
 		finish();
 	}

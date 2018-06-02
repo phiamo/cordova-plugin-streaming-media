@@ -73,7 +73,7 @@ public class StreamingMedia extends CordovaPlugin {
 								extras.putString(optKey, (String)options.get(optKey));
 								Log.v(TAG, "Added option: " + optKey + " -> " + String.valueOf(options.get(optKey)));
 							} else if (options.get(optKey).getClass().equals(Boolean.class)) {
-								extras.putBoolean(optKey, (Boolean)options.get(optKey));
+								extras.putBoolean("shouldAutoClose", true);
 								Log.v(TAG, "Added option: " + optKey + " -> " + String.valueOf(options.get(optKey)));
 							}
 
@@ -95,7 +95,8 @@ public class StreamingMedia extends CordovaPlugin {
 		super.onActivityResult(requestCode, resultCode, intent);
 		if (ACTIVITY_CODE_PLAY_MEDIA == requestCode) {
 			if (Activity.RESULT_OK == resultCode) {
-				this.callbackContext.success();
+			    int position = Integer.parseInt(intent.getExtras().getString("position"));
+				this.callbackContext.success(position);
 			} else if (Activity.RESULT_CANCELED == resultCode) {
 				String errMsg = "Error";
 				if (intent != null && intent.hasExtra("message")) {
