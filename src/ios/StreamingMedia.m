@@ -16,7 +16,7 @@
 	NSString* callbackId;
 	MPMoviePlayerController *moviePlayer;
 	BOOL shouldAutoClose;
-    NSString *position;
+    int position;
     UIColor *backgroundColor;
 	UIImageView *imageView;
     BOOL *initFullscreen;
@@ -40,7 +40,7 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 	}
 
     if (![options isKindOfClass:[NSNull class]] && [options objectForKey:@"position"]) {
-        [self setPosition:[options objectForKey:@"position"]];
+        [self setPosition:[[options objectForKey:@"position"] intValue]];
     }
     
     if (![options isKindOfClass:[NSNull class]] && [options objectForKey:@"initFullscreen"]) {
@@ -97,7 +97,7 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
     [self stop:command type:[NSString stringWithString:TYPE_AUDIO]];
 }
 
--(void) setPosition:(NSString *)pos {
+-(void) setPosition:(NSInteger *)pos {
     position = pos;
 }
 -(void) setBackgroundColor:(NSString *)color {
@@ -199,7 +199,7 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 
 	moviePlayer.controlStyle = MPMovieControlStyleDefault;
 
-    float pos = [position floatValue] / 1000;
+    float pos = (float)position;
     NSLog(@"Current Position");
     NSLog(@"%f",moviePlayer.currentPlaybackTime);
     NSLog(@"Setting Position");
