@@ -16,10 +16,10 @@
 	NSString* callbackId;
 	MPMoviePlayerController *moviePlayer;
 	BOOL shouldAutoClose;
-	UIColor *backgroundColor;
+    NSString *position;
+    UIColor *backgroundColor;
 	UIImageView *imageView;
     BOOL *initFullscreen;
-    BOOL controls;
 }
 
 NSString * const TYPE_VIDEO = @"VIDEO";
@@ -39,17 +39,15 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 		backgroundColor = [UIColor blackColor];
 	}
 
+    if (![options isKindOfClass:[NSNull class]] && [options objectForKey:@"position"]) {
+        [self setPosition:[options objectForKey:@"position"]];
+    }
+    
     if (![options isKindOfClass:[NSNull class]] && [options objectForKey:@"initFullscreen"]) {
         initFullscreen = [[options objectForKey:@"initFullscreen"] boolValue];
     } else {
         initFullscreen = true;
     }
-
-    if (![options isKindOfClass:[NSNull class]] && [options objectForKey:@"controls"]) {
-            controls = [[options objectForKey:@"controls"] boolValue];
-        } else {
-            controls = true;
-        }
 
 	if ([type isEqualToString:TYPE_AUDIO]) {
 		// bgImage
@@ -80,20 +78,6 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 	[self startPlayer:mediaUrl];
 }
 
--(void)pause:(CDVInvokedUrlCommand *) command type:(NSString *) type {
-    callbackId = command.callbackId;
-    if (moviePlayer) {
-        [moviePlayer pause];
-    }
-}
-
--(void)resume:(CDVInvokedUrlCommand *) command type:(NSString *) type {
-    callbackId = command.callbackId;
-    if (moviePlayer) {
-        [moviePlayer play];
-    }
-}
-
 -(void)stop:(CDVInvokedUrlCommand *) command type:(NSString *) type {
     callbackId = command.callbackId;
     if (moviePlayer) {
@@ -109,18 +93,13 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 	[self play:command type:[NSString stringWithString:TYPE_AUDIO]];
 }
 
--(void)pauseAudio:(CDVInvokedUrlCommand *) command {
-    [self pause:command type:[NSString stringWithString:TYPE_AUDIO]];
-}
-
--(void)resumeAudio:(CDVInvokedUrlCommand *) command {
-    [self resume:command type:[NSString stringWithString:TYPE_AUDIO]];
-}
-
 -(void)stopAudio:(CDVInvokedUrlCommand *) command {
     [self stop:command type:[NSString stringWithString:TYPE_AUDIO]];
 }
 
+-(void) setPosition:(NSString *)pos {
+    position = pos;
+}
 -(void) setBackgroundColor:(NSString *)color {
 	if ([color hasPrefix:@"#"]) {
 		// HEX value
@@ -218,11 +197,14 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 												 name:UIDeviceOrientationDidChangeNotification
 											   object:nil];
 
-	if (controls) {
-        [moviePlayer setControlStyle:MPMovieControlStyleDefault];
-    } else {
-        [moviePlayer setControlStyle:MPMovieControlStyleNone];
-    }
+	moviePlayer.controlStyle = MPMovieControlStyleDefault;
+
+    float pos = [position floatValue] / 1000;
+    NSLog(@"Current Position");
+    NSLog(@"%f",moviePlayer.currentPlaybackTime);
+    NSLog(@"Setting Position");
+    NSLog(@"%f", pos);
+    [moviePlayer setInitialPlaybackTime:pos];
 
 	moviePlayer.shouldAutoplay = YES;
 	if (imageView != nil) {
@@ -231,19 +213,13 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 	}
 	moviePlayer.backgroundView.backgroundColor = backgroundColor;
 	[self.viewController.view addSubview:moviePlayer.view];
-
+    
 	// Note: animating does a fade to black, which may not match background color
     if (initFullscreen) {
         [moviePlayer setFullscreen:YES animated:NO];
     } else {
         [moviePlayer setFullscreen:NO animated:NO];
     }
-	
-	// waiting indicator before loading. it's especially useful for over-the-network video plays
-    UIActivityIndicatorView *activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
-    activityIndicator.center = moviePlayer.backgroundView.center;
-    [activityIndicator startAnimating];
-    [moviePlayer.backgroundView addSubview:activityIndicator];
 }
 
 - (void) moviePlayBackDidFinish:(NSNotification*)notification {
@@ -261,22 +237,27 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 		NSLog(@"Playback failed: %@", errorMsg);
 	}
 
+    NSLog(@"Done Button");
+    NSLog(@"%f", moviePlayer.currentPlaybackTime);
+    int position = moviePlayer.currentPlaybackTime;
 	if (shouldAutoClose || [errorMsg length] != 0) {
 		[self cleanup];
 		CDVPluginResult* pluginResult;
 		if ([errorMsg length] != 0) {
 			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMsg];
 		} else {
-			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:true];
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:position];
 		}
 		[self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
 	}
 }
 
 -(void)doneButtonClick:(NSNotification*)notification{
+    NSLog(@"Done Button");
+    NSLog(@"%f", moviePlayer.currentPlaybackTime);
+    int position = moviePlayer.currentPlaybackTime;
 	[self cleanup];
-
-	CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:true];
+	CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:position];
 	[self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
 }
 
