@@ -51,7 +51,7 @@ public class SimpleVideoStream extends Activity implements
 		mVideoView.setLayoutParams(relLayoutParam);
 
         Log.d(TAG, "Bundle: " + b.toString());
-        int position = Integer.parseInt(b.getString("position"));
+        int position = b.getInt("position") * 1000;
 
 		relLayout.addView(mVideoView);
 
