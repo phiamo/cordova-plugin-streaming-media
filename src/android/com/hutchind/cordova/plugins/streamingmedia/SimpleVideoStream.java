@@ -50,8 +50,8 @@ public class SimpleVideoStream extends Activity implements
 		mVideoView = new VideoView(this);
 		mVideoView.setLayoutParams(relLayoutParam);
 
-        Log.d(TAG, "Bundle: " + b.toString());
-        int position = b.getInt("position") * 1000;
+		Log.d(TAG, "Bundle: " + b.toString());
+		int position = b.getInt("position") * 1000;
 
 		relLayout.addView(mVideoView);
 
@@ -85,21 +85,21 @@ public class SimpleVideoStream extends Activity implements
 			mMediaController.setAnchorView(mVideoView);
 			mMediaController.setMediaPlayer(mVideoView);
 			mVideoView.setMediaController(mMediaController);
-            Log.d(TAG, "Seeking to " + position);
-            mVideoView.seekTo(position);
-            final int pos = position;
-            if(pos > 0) {
-                mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                    @Override
-                    public void onPrepared(MediaPlayer mp) {
-                        mp.seekTo(pos);
-                        mVideoView.seekTo(pos);
-                        mVideoView.requestFocus();
-                        mVideoView.start();
-                        mVideoView.postDelayed(checkIfPlaying, 0);
-                    }
-                });
-            }
+			Log.d(TAG, "Seeking to " + position);
+			mVideoView.seekTo(position);
+			final int pos = position;
+			if(pos > 0) {
+				mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+					@Override
+					public void onPrepared(MediaPlayer mp) {
+						mp.seekTo(pos);
+						mVideoView.seekTo(pos);
+						mVideoView.requestFocus();
+						mVideoView.start();
+						mVideoView.postDelayed(checkIfPlaying, 0);
+					}
+				});
+			}
 		} catch (Throwable t) {
 			Log.d(TAG, t.toString());
 		}
