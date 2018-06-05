@@ -107,7 +107,7 @@ public class SimpleVideoStream extends Activity implements
 
 	private void setOrientation(String orientation) {
 		if ("landscape".equals(orientation)) {
-			this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+			this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
 		}else if("portrait".equals(orientation)) {
 			this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		}
