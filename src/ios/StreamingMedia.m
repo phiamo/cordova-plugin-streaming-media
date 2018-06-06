@@ -17,6 +17,7 @@
 	MPMoviePlayerController *moviePlayer;
 	BOOL shouldAutoClose;
     int position;
+    BOOL seekedTo;
     UIColor *backgroundColor;
 	UIImageView *imageView;
     BOOL *initFullscreen;
@@ -146,11 +147,25 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 }
 
 - (void)orientationChanged:(NSNotification *)notification {
-	if (imageView != nil) {
-		// adjust imageView for rotation
-		imageView.bounds = moviePlayer.backgroundView.bounds;
-		imageView.frame = moviePlayer.backgroundView.frame;
-	}
+    if (imageView != nil) {
+        // adjust imageView for rotation
+        imageView.bounds = moviePlayer.backgroundView.bounds;
+        imageView.frame = moviePlayer.backgroundView.frame;
+    }
+}
+- (void)moviePreparedCallback:(NSNotification *)notification {
+    if(!seekedTo) {
+        float pos = (float)position;
+        [moviePlayer setCurrentPlaybackTime:pos];
+        NSLog(@"Currentp Position");
+        NSLog(@"%f", moviePlayer.currentPlaybackTime);
+        NSLog(@"Settingp Position");
+        NSLog(@"%f", pos);
+        [moviePlayer setInitialPlaybackTime:pos];
+        NSLog(@"Afterp Position");
+        NSLog(@"%f", moviePlayer.currentPlaybackTime);
+        seekedTo = true;
+    }
 }
 
 -(void)setImage:(NSString*)imagePath withScaleType:(NSString*)imageScaleType {
@@ -196,15 +211,11 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 											 selector:@selector(orientationChanged:)
 												 name:UIDeviceOrientationDidChangeNotification
 											   object:nil];
-
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(moviePreparedCallback:)   name:MPMediaPlaybackIsPreparedToPlayDidChangeNotification object:moviePlayer];
+    
 	moviePlayer.controlStyle = MPMovieControlStyleDefault;
 
-    float pos = (float)position;
-    NSLog(@"Current Position");
-    NSLog(@"%f",moviePlayer.currentPlaybackTime);
-    NSLog(@"Setting Position");
-    NSLog(@"%f", pos);
-    [moviePlayer setInitialPlaybackTime:pos];
 
 	moviePlayer.shouldAutoplay = YES;
 	if (imageView != nil) {
@@ -220,6 +231,8 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
     } else {
         [moviePlayer setFullscreen:NO animated:NO];
     }
+    
+    seekedTo = false;
 }
 
 - (void) moviePlayBackDidFinish:(NSNotification*)notification {
@@ -282,7 +295,10 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 							removeObserver:self
 									  name:UIDeviceOrientationDidChangeNotification
 									object:nil];
-
+    [[NSNotificationCenter defaultCenter]
+                            removeObserver:self
+                                      name:MPMediaPlaybackIsPreparedToPlayDidChangeNotification
+                                    object:nil];
 	if (moviePlayer) {
 		moviePlayer.fullscreen = NO;
 		[moviePlayer setInitialPlaybackTime:-1];
