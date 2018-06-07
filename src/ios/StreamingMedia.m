@@ -266,8 +266,6 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 }
 
 -(void)doneButtonClick:(NSNotification*)notification{
-    NSLog(@"Done Button");
-    NSLog(@"%f", moviePlayer.currentPlaybackTime);
     int position = moviePlayer.currentPlaybackTime;
 	[self cleanup];
 	CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:position];
