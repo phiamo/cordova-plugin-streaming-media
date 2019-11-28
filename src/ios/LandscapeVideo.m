@@ -1,4 +1,5 @@
 #import "LandscapeVideo.h"
+#import <Cordova/CDV.h>
 
 @implementation LandscapeAVPlayerViewController
 
@@ -8,5 +9,9 @@
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
     return UIInterfaceOrientationMaskLandscape;
+}
+- (void) viewWillDisappear:(BOOL)animated {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"PlayerViewDismissedNotification" object:nil];
+    [super viewWillDisappear:animated];
 }
 @end

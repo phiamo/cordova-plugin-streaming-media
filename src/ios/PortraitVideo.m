@@ -9,4 +9,8 @@
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
     return UIInterfaceOrientationMaskPortrait; // or PortraitUpsideDown
 }
+- (void) viewWillDisappear:(BOOL)animated {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"PlayerViewDismissedNotification" object:nil];
+    [super viewWillDisappear:animated];
+}
 @end

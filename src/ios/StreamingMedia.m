@@ -117,8 +117,8 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 }
 
 
--(void) setPosition:(NSInteger *)pos {
-    position = pos;
+-(void) setPosition:(NSInteger)pos {
+    position = (int)pos;
 }
 
 // Ignore the mute button
@@ -231,6 +231,8 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
     [self.viewController presentViewController:moviePlayer animated:YES completion:^(void){
         [moviePlayer.player play];
     }];
+    [moviePlayer.player seekToTime:CMTimeMake(position, 1)
+                   toleranceBefore:kCMTimePositiveInfinity toleranceAfter:kCMTimeZero];
     
     // add audio image and background color
     if ([videoType isEqualToString:TYPE_AUDIO]) {
@@ -247,7 +249,11 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 }
 
 - (void) handleListeners {
-    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(moviePlayBackDidFinish:)
+                                                 name:@"PlayerViewDismissedNotification"
+                                               object:nil];
+
     // Listen for re-maximize
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(appDidBecomeActive:)
@@ -286,6 +292,7 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
      name:MPMoviePlayerWillExitFullscreenNotification
      object:nil];
      */
+
 }
 
 - (void) handleGestures {
@@ -363,20 +370,25 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
         NSLog(@"Playback failed: %@", errorMsg);
     }
     
+    int position = CMTimeGetSeconds(moviePlayer.player.currentTime);
+
+    NSLog(@"Setting Position");
+    NSLog(@"%i", position);
+    
     if (shouldAutoClose || [errorMsg length] != 0) {
         [self cleanup];
         CDVPluginResult* pluginResult;
         if ([errorMsg length] != 0) {
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMsg];
         } else {
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:true];
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:position];
         }
         [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
     }
 }
 
 - (void)cleanup {
-    NSLog(@"Clean up called");
+    NSLog(@"Clean up streaming called");
     imageView = nil;
     initFullscreen = false;
     backgroundColor = nil;
