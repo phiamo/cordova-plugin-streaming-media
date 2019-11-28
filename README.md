@@ -12,12 +12,12 @@ This plugin allows you to stream audio and video in a fullscreen, native player 
 ## Installation
 
 ```
-cordova plugin add cordova-plugin-streaming-media
+cordova plugin add https://github.com/nchutchind/cordova-plugin-streaming-media
 ```
 
 ### iOS specifics
-* Uses the MPMoviePlayerController.
-* Tested on iOS 7, 9
+* Uses the AVPlayerViewController
+* Tested on iOS 12 or later
 
 ### Android specifics
 * Uses VideoView and MediaPlayer.
@@ -56,8 +56,9 @@ cordova plugin add cordova-plugin-streaming-media
   var options = {
     bgColor: "#FFFFFF",
     bgImage: "<SWEET_BACKGROUND_IMAGE>",
-    bgImageScale: "fit", // other valid values: "stretch"
-    initFullscreen: false, // true(default)/false iOS only
+    bgImageScale: "fit", // other valid values: "stretch", "aspectStretch"
+    initFullscreen: false, // true is default. iOS only.
+    keepAwake: false, // prevents device from sleeping. true is default. Android only.
     successCallback: function() {
       console.log("Player closed without error.");
     },
@@ -77,3 +78,9 @@ cordova plugin add cordova-plugin-streaming-media
   window.plugins.streamingMedia.resumeAudio();  
 
 ```
+
+## Special Thanks
+
+[Michael Robinson (@faceleg)](https://github.com/faceleg)
+
+[Timothy Shamilov (@shamilovtim)](https://github.com/shamilovtim)
