@@ -110,5 +110,4 @@ public class StreamingMedia extends CordovaPlugin {
 			}
 		}
 	}
->>>>>>> master-upstream-2
 }
