@@ -30,9 +30,9 @@ MediaPlayer.OnErrorListener, MediaPlayer.OnBufferingUpdateListener {
 	private MediaController mMediaController = null;
 	private ProgressBar mProgressBar = null;
 	private String mVideoUrl;
+	private Integer startPosition = null;
 	private Boolean mShouldAutoClose = true;
 	private boolean mControls;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -52,7 +52,7 @@ MediaPlayer.OnErrorListener, MediaPlayer.OnBufferingUpdateListener {
 		mVideoView.setLayoutParams(relLayoutParam);
 
 		Log.d(TAG, "Bundle: " + b.toString());
-		int position = b.getInt("position") * 1000;
+		this.startPosition = b.getInt("position") * 1000;
 
 		relLayout.addView(mVideoView);
 
@@ -71,10 +71,10 @@ MediaPlayer.OnErrorListener, MediaPlayer.OnBufferingUpdateListener {
 
 		setContentView(relLayout, relLayoutParam);
 
-		play(position);
+		play();
 	}
 
-	private void play(int position) {
+	private void play() {
 		mProgressBar.setVisibility(View.VISIBLE);
 		Uri videoUri = Uri.parse(mVideoUrl);
 		try {
@@ -86,21 +86,7 @@ MediaPlayer.OnErrorListener, MediaPlayer.OnBufferingUpdateListener {
 			mMediaController.setAnchorView(mVideoView);
 			mMediaController.setMediaPlayer(mVideoView);
 			mVideoView.setMediaController(mMediaController);
-			Log.d(TAG, "Seeking to " + position);
-			mVideoView.seekTo(position);
-			final int pos = position;
-			if(pos > 0) {
-				mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-					@Override
-					public void onPrepared(MediaPlayer mp) {
-						mp.seekTo(pos);
-						mVideoView.seekTo(pos);
-						mVideoView.requestFocus();
-						mVideoView.start();
-						mVideoView.postDelayed(checkIfPlaying, 0);
-					}
-				});
-			}
+			Log.d(TAG, "Seeking to " + this.startPosition);
 		} catch (Throwable t) {
 			Log.d(TAG, t.toString());
 		}
@@ -134,9 +120,19 @@ MediaPlayer.OnErrorListener, MediaPlayer.OnBufferingUpdateListener {
 		Log.d(TAG, "Stream is prepared");
 		mMediaPlayer = mp;
 		mMediaPlayer.setOnBufferingUpdateListener(this);
+		if(this.startPosition != null) {
+			mVideoView.seekTo(this.startPosition);
+		}
 		mVideoView.requestFocus();
 		mVideoView.start();
 		mVideoView.postDelayed(checkIfPlaying, 0);
+	}
+
+	@Override
+	public void onPause() {
+		Log.d(TAG, "onPause called");
+		this.startPosition = mVideoView.getCurrentPosition();
+		super.onPause();
 	}
 
 	private void pause() {
